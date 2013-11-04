@@ -22,7 +22,8 @@ var _ = require('underscore'),
 function BehatTask (options) {
     var tasks = {},
         failedTasks = {},
-        startTime;
+        startTime,
+        FeatureTask = options.FeatureTask;
 
     /**
      * Create a behat command for each file and run it using the executor
@@ -39,18 +40,34 @@ function BehatTask (options) {
         options.executor.start();
     }
 
+    function fileToCommand(file) {
+        var configOpt = options.config ? '-c ' + options.config : '',
+            filePath = options.baseDir ? options.baseDir + file : file,
+            cmd = [options.bin, configOpt, options.flags, filePath].join(' ');
+        return cmd;
+    }
+
     /**
      * Send an individual feature file to be run
      *
      * @param {String} file
      */
     function addTask (file) {
-        var configOpt = options.config ? '-c ' + options.config : '',
-            filePath = options.baseDir ? options.baseDir + file : file,
-            cmd = [options.bin, configOpt, options.flags, filePath].join(' ');
-
-        tasks[cmd] = file;
+        var cmd = fileToCommand(file);
+        tasks[cmd] = new FeatureTask(file);
         options.executor.addTask(cmd);
+    }
+
+    /**
+     * Returns the FeatureTask for the given file
+     *
+     * @param {String} file
+     * @return {FeatureTask}
+     */
+    function getFeature (file) {
+        // return fileToCommand(file);
+        var cmd = fileToCommand(file);
+        return tasks[cmd];
     }
 
     /**
@@ -71,7 +88,7 @@ function BehatTask (options) {
      * @param {string} stderr
      */
     function taskFinished (task, err, stdout, stderr) {
-        var file = tasks[task],
+        var file = tasks[task].filename,
             output = stdout ? stdout.split('\n') : [];
 
         if (err && (err.code === 13 || err.killed)) {
@@ -109,7 +126,7 @@ function BehatTask (options) {
         failedTasks[task] = _.has(failedTasks, task) ? failedTasks[task] + 1 : 0;
 
         if (failedTasks[task] < options.numRetries) {
-            options.log('Retrying: ' + tasks[task] + ' ' + (failedTasks[task] + 1) + ' of ' + options.numRetries + ' time(s)');
+            options.log('Retrying: ' + tasks[task].filename + ' ' + (failedTasks[task] + 1) + ' of ' + options.numRetries + ' time(s)');
             options.executor.addTask(task);
         }
     }
@@ -125,6 +142,7 @@ function BehatTask (options) {
     }
 
     this.run = run;
+    this.getFeature = getFeature;
 }
 
 module.exports = BehatTask;

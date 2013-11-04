@@ -3,12 +3,14 @@
 var assert = require('chai').assert,
     spy = require('sinon').spy,
     stub = require('sinon').stub,
-    BehatTask = require('../../tasks/lib/BehatTask');
+    BehatTask = require('../../tasks/lib/BehatTask'),
+    FeatureTask = require('../../tasks/lib/FeatureTask');
 
 suite('Behat Test', function () {
     var mockExecutor,
         task,
-        log;
+        log,
+        featureTask;
 
     setup(function () {
         mockExecutor = {
@@ -22,6 +24,9 @@ suite('Behat Test', function () {
 
         log = spy();
 
+        featureTask = stub().withArgs('awesome.feature').returns({ filename: 'awesome.feature', klass: 'FeatureTask'});
+        featureTask.withArgs('brilliant.feature').returns({ filename: 'brilliant.feature', klass: 'FeatureTask'});
+
         task = new BehatTask({
             executor: mockExecutor,
             done: function () {},
@@ -29,7 +34,8 @@ suite('Behat Test', function () {
             files: ['awesome.feature', 'brilliant.feature'],
             bin: 'behat',
             flags: '',
-            maxProcesses: 10000
+            maxProcesses: 10000,
+            FeatureTask: featureTask
         });
     });
 
@@ -41,6 +47,15 @@ suite('Behat Test', function () {
         assert.equal(mockExecutor.addTask.args[0][0], 'behat   awesome.feature');
         assert.equal(mockExecutor.addTask.args[1][0], 'behat   brilliant.feature');
         assert.equal(mockExecutor.start.callCount, 1);
+    });
+
+    test('tasks should be FeatureTasks', function () {
+        task.run();
+
+        var awesome = task.getFeature('awesome.feature'),
+            brilliant = task.getFeature('brilliant.feature');
+        assert.equal(awesome.klass, 'FeatureTask', 'created a FeatureTask');
+        assert.equal(brilliant.klass, 'FeatureTask', 'created a FeatureTask');
     });
 
     test('registers listeners for tasks started and completed', function () {
@@ -122,7 +137,8 @@ suite('Behat Test', function () {
             bin: 'behat',
             flags: '',
             maxProcesses: 10000,
-            numRetries: 2
+            numRetries: 2,
+            FeatureTask: featureTask
         });
         task.run();
 
@@ -145,7 +161,8 @@ suite('Behat Test', function () {
             bin: 'behat',
             flags: '',
             maxProcesses: 10000,
-            numRetries: 2
+            numRetries: 2,
+            FeatureTask: featureTask
         });
         task.run();
 

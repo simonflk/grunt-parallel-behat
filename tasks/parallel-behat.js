@@ -5,6 +5,7 @@ var glob = require('glob'),
     _ = require('underscore'),
     ParallelExec = require('./lib/ParallelExec'),
     BehatTask = require('./lib/BehatTask'),
+    FeatureTask = require('./lib/FeatureTask'),
     defaults = {
         src: './**/*.feature',
         bin: './bin/behat',
@@ -36,6 +37,7 @@ function GruntTask (grunt) {
             options.done = done;
             options.executor = executor;
             options.log = grunt.log.writeln;
+            options.FeatureTask = FeatureTask;
 
             behat = new BehatTask(options);
             behat.run();
