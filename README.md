@@ -41,7 +41,8 @@ grunt.initConfig({
         config: './behat/behat.yml',
         maxProcesses: 5,
         bin: './bin/behat',
-        flags: '--tags @wip'
+        flags: '--tags @wip',
+        output: './report.json'
     }
 });
 ```

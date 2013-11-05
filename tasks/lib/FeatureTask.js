@@ -18,52 +18,55 @@ function FeatureTask (filename) {
 	this.results = [];
 	this.retries = 0;
 	this.ok = false;
+}
 
+_.extend(FeatureTask.prototype, {
 	/**
 	 * task is started - set start time on new result
 	 */
-	this.start = function () {
+	start: function () {
 		this.results.push({
 			start: +new Date()
 		});
-	};
+	},
 
 	/**
 	 * set task completion status & time on latest result
 	 *
 	 * @param {String} status
 	 */
-	this.setCompletion = function (status, result) {
+	setCompletion: function (status, result) {
 		var thisResult = _.last(this.results);
 		thisResult.status = status;
 		thisResult.result = result;
 		thisResult.end = +new Date();
-	};
+	},
 
-	this.seleniumTimeout =function () {
+	seleniumTimeout: function () {
 		this.setCompletion('seleniumTimeout');
-	};
+	},
 
-	this.forceKillTimeout =function () {
+	forceKillTimeout: function () {
 		this.setCompletion('forceKillTimeout');
-	};
+	},
 
-	this.failed = function (result) {
+	failed: function (result) {
 		this.setCompletion('failed', result);
-	};
+	},
 
-	this.unknown = function () {
+	unknown: function () {
 		this.setCompletion('unknown');
-	};
+	},
 
-	this.succeeded = function (result) {
+	succeeded: function (result) {
 		this.setCompletion('succeeded', result);
 		this.ok = true;
-	};
+	},
 
-	this.requeue = function () {
+	requeue: function () {
 		this.retries++;
-	};
-}
+	}
+
+});
 
 module.exports = FeatureTask;
