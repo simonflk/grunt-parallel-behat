@@ -65,8 +65,11 @@ function BehatTask (options) {
      * @return {FeatureTask}
      */
     function getFeature (file) {
-        // return fileToCommand(file);
         var cmd = fileToCommand(file);
+        return tasks[cmd];
+    }
+
+    function getFeatureFromCommand(cmd) {
         return tasks[cmd];
     }
 
@@ -87,27 +90,38 @@ function BehatTask (options) {
      * @param {string} stdout
      * @param {string} stderr
      */
-    function taskFinished (task, err, stdout, stderr) {
-        var file = tasks[task].filename,
-            output = stdout ? stdout.split('\n') : [];
+    function taskFinished (cmd, err, stdout, stderr) {
+        var task = this.getFeatureFromCommand(cmd),
+            file = task.filename,
+            output = stdout ? stdout.split('\n') : [],
+            testResults = parseTestResults(output[output.length - 4]);
 
-        if (err && (err.code === 13 || err.killed)) {
-            options.log('Timeout: ' + file + ' - adding to the back of the queue.');
-            options.executor.addTask(task);
-        }
-        else if (err && err.code === 1) {
-            options.log('Failed: ' + file + ' - ' + output[output.length - 4] + ' in ' + output[output.length - 2]);
-            taskPendingOrFailed(task);
-        }
-        else if (err) {
-            options.log('Error: ' + file + ' - ' + err + stdout);
-        }
-        else {
+        if (!err) {
             options.log('Completed: ' + file + ' - ' + output[output.length - 4] + ' in ' + output[output.length - 2]);
 
-            if (output[output.length - 4].indexOf('pending') > -1) {
-                taskPendingOrFailed(task);
+            if (testResults.pending) {
+                taskPendingOrFailed(cmd, task, testResults);
+            } else {
+                task.succeeded(testResults);
             }
+        } else if (err.killed) {
+            options.log('Killed (timeout): ' + file + ' - adding to the back of the queue.');
+            options.executor.addTask(task);
+            task.forceKillTimeout();
+            task.requeue();
+        } else if (err.code === 13) {
+            options.log('Selenium timeout: ' + file + ' - adding to the back of the queue.');
+            options.executor.addTask(task);
+            task.seleniumTimeout();
+            task.requeue();
+        }
+        else if (err.code === 1) {
+            options.log('Failed: ' + file + ' - ' + output[output.length - 4] + ' in ' + output[output.length - 2]);
+            taskPendingOrFailed(cmd, task, testResults);
+        }
+        else {
+            options.log('Error: ' + file + ' - ' + err + stdout);
+            task.unknown();
         }
 
         if (options.debug) {
@@ -122,12 +136,14 @@ function BehatTask (options) {
      *
      * @param  {string} task
      */
-    function taskPendingOrFailed (task) {
-        failedTasks[task] = _.has(failedTasks, task) ? failedTasks[task] + 1 : 0;
+    function taskPendingOrFailed (cmd, task, result) {
+        failedTasks[cmd] = _.has(failedTasks, cmd) ? failedTasks[cmd] + 1 : 0;
 
-        if (failedTasks[task] < options.numRetries) {
-            options.log('Retrying: ' + tasks[task].filename + ' ' + (failedTasks[task] + 1) + ' of ' + options.numRetries + ' time(s)');
-            options.executor.addTask(task);
+        task.failed(result);
+        if (failedTasks[cmd] < options.numRetries) {
+            options.log('Retrying: ' + task.filename + ' ' + (failedTasks[cmd] + 1) + ' of ' + options.numRetries + ' time(s)');
+            options.executor.addTask(cmd);
+            task.requeue();
         }
     }
 
@@ -141,8 +157,32 @@ function BehatTask (options) {
         options.done();
     }
 
+    /**
+     * Parses the Behat scenario summary results
+     * @param  {String}  e.g. "10 scenarios (6 passed, 1 failed, 1 pending, 2 unknown)"
+     * @return {Object}  e.g. { passed: 6, failed: 1, pending: 1, unknown: 2 }
+     */
+    function parseTestResults (resultLine) {
+        var scenarioResults = /^\d+ scenarios \((.*)\)/.exec(resultLine),
+            result;
+
+        // A string like "1 passed" or "3 passed, 2 pending, 1 failed"
+        if (scenarioResults && scenarioResults[1]) {
+            result = _.chain(scenarioResults[1].split(', '))
+            .map(function (fragment) {
+                var typeResult = fragment.split(' ').reverse();
+                typeResult[1] = parseInt(typeResult[1]);
+                return typeResult;
+            })
+            .object()
+            .value();
+        }
+        return result;
+    }
+
     this.run = run;
     this.getFeature = getFeature;
+    this.getFeatureFromCommand = getFeatureFromCommand;
 }
 
 module.exports = BehatTask;

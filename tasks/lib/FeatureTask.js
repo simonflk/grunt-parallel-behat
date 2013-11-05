@@ -31,10 +31,11 @@ function FeatureTask (filename) {
 	 *
 	 * @param {String} status
 	 */
-	this.setCompletion = function (status) {
-		var result = _.last(this.results);
-		result.status = status;
-		result.end = +new Date();
+	this.setCompletion = function (status, result) {
+		var thisResult = _.last(this.results);
+		thisResult.status = status;
+		thisResult.result = result;
+		thisResult.end = +new Date();
 	};
 
 	this.seleniumTimeout =function () {
@@ -45,16 +46,16 @@ function FeatureTask (filename) {
 		this.setCompletion('forceKillTimeout');
 	};
 
-	this.failed = function () {
-		this.setCompletion('failed');
+	this.failed = function (result) {
+		this.setCompletion('failed', result);
 	};
 
 	this.unknown = function () {
 		this.setCompletion('unknown');
 	};
 
-	this.succeeded = function () {
-		this.setCompletion('succeeded');
+	this.succeeded = function (result) {
+		this.setCompletion('succeeded', result);
 		this.ok = true;
 	};
 

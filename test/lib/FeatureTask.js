@@ -42,6 +42,16 @@ suite('Feature Test', function () {
         assert.isNumber(task.results[0].end, 'latest result has a end time');
     });
 
+    test('#setCompletion(result)', function () {
+        var result = {
+            status: 'whatever'
+        };
+        task.setCompletion('awesome', result);
+        assert.equal(task.results[0].status, 'awesome', 'status set on new result');
+        assert.isNumber(task.results[0].end, 'latest result has a end time');
+        assert.equal(task.results[0].result, result, 'result set on new result');
+    });
+
     test('#setCompletion() twice', function () {
         task.setCompletion('awesome');
         task.start();
@@ -74,6 +84,17 @@ suite('Feature Test', function () {
         assert.isTrue(task.setCompletion.calledWith('failed'));
     });
 
+    test('#failed(result)', function () {
+        var result = {
+            passed: 1,
+            failed: 2
+        };
+        task.setCompletion = spy();
+        task.failed(result);
+        assert.equal(task.setCompletion.callCount, 1);
+        assert.isTrue(task.setCompletion.calledWith('failed', result));
+    });
+
     test('#unknown()', function () {
         task.setCompletion = spy();
         task.unknown();
@@ -87,6 +108,17 @@ suite('Feature Test', function () {
         assert.equal(task.setCompletion.callCount, 1);
         assert.isTrue(task.setCompletion.calledWith('succeeded'));
     });
+
+    test('#succeeded(result)', function () {
+        var result = {
+            passed: 1
+        };
+        task.setCompletion = spy();
+        task.succeeded(result);
+        assert.equal(task.setCompletion.callCount, 1);
+        assert.isTrue(task.setCompletion.calledWith('succeeded', result));
+    });
+
 
     test('#requeue()', function () {
         task.requeue();
