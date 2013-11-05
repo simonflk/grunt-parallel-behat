@@ -12,7 +12,9 @@ var _ = require('underscore');
  * @param {String} filename
  */
 function FeatureTask (filename) {
+	this.id = _.uniqueId('feature_');
 	this.filename = filename;
+	this.descriptor = '[' + this.id + '] ' + this.filename;
 	this.results = [];
 	this.retries = 0;
 	this.ok = false;

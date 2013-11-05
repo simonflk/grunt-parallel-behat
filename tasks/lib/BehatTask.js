@@ -1,7 +1,8 @@
 'use strict';
 
 var _ = require('underscore'),
-    inspect = require('util').inspect;
+    inspect = require('util').inspect,
+    fs = require('fs');
 
 /**
  * Run multiple behat feature files in parallel.
@@ -69,6 +70,12 @@ function BehatTask (options) {
         return tasks[cmd];
     }
 
+    /**
+     * Returns the FeatureTask for the given command
+     *
+     * @param {String} cmd
+     * @return {FeatureTask}
+     */
     function getFeatureFromCommand(cmd) {
         return tasks[cmd];
     }
@@ -76,10 +83,12 @@ function BehatTask (options) {
     /**
      * Tell the user we've started a new task
      *
-     * @param  {string} task
+     * @param  {string} cmd
      */
-    function taskStarted (task) {
-        options.log('Started: ' + task);
+    function taskStarted (cmd) {
+        var task = this.getFeatureFromCommand(cmd);
+        options.log('Started: [' + task.id + '] ' + cmd);
+        writeReport();
     }
 
     /**
@@ -92,12 +101,11 @@ function BehatTask (options) {
      */
     function taskFinished (cmd, err, stdout, stderr) {
         var task = this.getFeatureFromCommand(cmd),
-            file = task.filename,
             output = stdout ? stdout.split('\n') : [],
             testResults = parseTestResults(output[output.length - 4]);
 
         if (!err) {
-            options.log('Completed: ' + file + ' - ' + output[output.length - 4] + ' in ' + output[output.length - 2]);
+            options.log('Completed: ' + task.descriptor + ' - ' + output[output.length - 4] + ' in ' + output[output.length - 2]);
 
             if (testResults.pending) {
                 taskPendingOrFailed(cmd, task, testResults);
@@ -105,26 +113,29 @@ function BehatTask (options) {
                 task.succeeded(testResults);
             }
         } else if (err.killed) {
-            options.log('Killed (timeout): ' + file + ' - adding to the back of the queue.');
+            options.log('Killed (timeout): ' + task.descriptor + ' - adding to the back of the queue.');
             options.executor.addTask(task);
             task.forceKillTimeout();
             task.requeue();
         } else if (err.code === 13) {
-            options.log('Selenium timeout: ' + file + ' - adding to the back of the queue.');
+            options.log('Selenium timeout: ' + task.descriptor + ' - adding to the back of the queue.');
             options.executor.addTask(task);
             task.seleniumTimeout();
             task.requeue();
         }
         else if (err.code === 1) {
-            options.log('Failed: ' + file + ' - ' + output[output.length - 4] + ' in ' + output[output.length - 2]);
+            options.log('Failed: ' + task.descriptor + ' - ' + output[output.length - 4] + ' in ' + output[output.length - 2]);
             taskPendingOrFailed(cmd, task, testResults);
         }
         else {
-            options.log('Error: ' + file + ' - ' + err + stdout);
+            options.log('Error: ' + task.descriptor + ' - ' + err + stdout);
             task.unknown();
         }
 
+        writeReport();
+
         if (options.debug) {
+            options.log('\ntask: \n' + inspect(task));
             if (err) options.log('\nerr: \n' + inspect(err));
             if (stderr) options.log('\nstderr: \n' + stderr);
             if (stdout) options.log('\nstdout: \n' + stdout);
@@ -138,10 +149,9 @@ function BehatTask (options) {
      */
     function taskPendingOrFailed (cmd, task, result) {
         failedTasks[cmd] = _.has(failedTasks, cmd) ? failedTasks[cmd] + 1 : 0;
-
         task.failed(result);
         if (failedTasks[cmd] < options.numRetries) {
-            options.log('Retrying: ' + task.filename + ' ' + (failedTasks[cmd] + 1) + ' of ' + options.numRetries + ' time(s)');
+            options.log('Retrying: ' + task.descriptor + ' ' + (failedTasks[cmd] + 1) + ' of ' + options.numRetries + ' time(s)');
             options.executor.addTask(cmd);
             task.requeue();
         }
@@ -155,6 +165,20 @@ function BehatTask (options) {
 
         options.log('\nFinished in ' + Math.floor(totalTime / 60) + 'm' + totalTime % 60 + 's');
         options.done();
+    }
+
+    /**
+     * Write JSON report of all feature tasks
+     * requires `output` option to be set
+     */
+    function writeReport () {
+        if (options.output) {
+            fs.writeFile(options.output, JSON.stringify(_.values(tasks)), function (err) {
+                if (err) {
+                    options.log('\n[Error writing to logfile "' = options.output + '" -- ' + err);
+                }
+            });
+        }
     }
 
     /**

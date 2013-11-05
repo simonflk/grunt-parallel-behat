@@ -41,7 +41,7 @@ suite('Behat Test', function () {
 
         task = new BehatTask(_.defaults(options, defaults, {
             executor: mockExecutor,
-            FeatureTask: function (filename) { return { filename: filename, klass: 'FeatureTask'}; },
+            FeatureTask: function (filename) { return { filename: filename, id: 'ffsdf', klass: 'FeatureTask'}; },
             log: log
         }));
 
@@ -51,6 +51,8 @@ suite('Behat Test', function () {
     function makeFeatureSpy (filename, methods) {
         var featureSpy = new FeatureTask();
         featureSpy.filename = filename;
+        featureSpy.id = 'feature_spy';
+        featureSpy.descriptor = '[feature_spy] ' + filename;
         _.each(methods, function (m) {
             stub(featureSpy, m);
         });
@@ -100,8 +102,8 @@ suite('Behat Test', function () {
 
         assert.equal(log.callCount, 4);
         assert.equal(log.args[0][0], 'Found 2 feature file(s). Running 10000 at a time.');
-        assert.equal(log.args[1][0], 'Started: behat   awesome.feature');
-        assert.equal(log.args[2][0], 'Completed: awesome.feature - 3 scenarios (3 passed) in 5m15s');
+        assert.equal(log.args[1][0], 'Started: [feature_spy] behat   awesome.feature');
+        assert.equal(log.args[2][0], 'Completed: [feature_spy] awesome.feature - 3 scenarios (3 passed) in 5m15s');
         assert(log.args[3][0].indexOf('Finished in') > -1);
         assert.equal(featureSpy.succeeded.callCount, 1, 'succeeded() should have been called');
         assert.deepEqual(featureSpy.succeeded.args[0][0], { passed: 3 }, 'succeeded() gets the scenario results');
@@ -119,7 +121,7 @@ suite('Behat Test', function () {
 
         assert.equal(log.callCount, 2);
         assert.equal(mockExecutor.addTask.callCount, 2);
-        assert.equal(log.args[1][0], 'Completed: awesome.feature - 3 scenarios (2 passed, 1 pending) in 5m15s');
+        assert.equal(log.args[1][0], 'Completed: [feature_spy] awesome.feature - 3 scenarios (2 passed, 1 pending) in 5m15s');
         assert.equal(featureSpy.failed.callCount, 1, 'failed() should have been called');
         assert.deepEqual(featureSpy.failed.args[0][0], { passed: 2, pending: 1 }, 'failed() gets the scenario results');
         assert.equal(featureSpy.requeue.callCount, 0, 'requeue() should have been called');
@@ -136,7 +138,7 @@ suite('Behat Test', function () {
 
         assert.equal(log.callCount, 2);
         assert.equal(mockExecutor.addTask.callCount, 3);
-        assert.equal(log.args[1][0], 'Selenium timeout: awesome.feature - adding to the back of the queue.');
+        assert.equal(log.args[1][0], 'Selenium timeout: [feature_spy] awesome.feature - adding to the back of the queue.');
         assert.equal(featureSpy.seleniumTimeout.callCount, 1, 'seleniumTimeout() should have been called');
         assert.equal(featureSpy.requeue.callCount, 1, 'requeue() should have been called');
     });
@@ -152,7 +154,7 @@ suite('Behat Test', function () {
 
         assert.equal(log.callCount, 2);
         assert.equal(mockExecutor.addTask.callCount, 3);
-        assert.equal(log.args[1][0], 'Killed (timeout): awesome.feature - adding to the back of the queue.');
+        assert.equal(log.args[1][0], 'Killed (timeout): [feature_spy] awesome.feature - adding to the back of the queue.');
         assert.equal(featureSpy.forceKillTimeout.callCount, 1, 'forceKillTimeout() should have been called');
         assert.equal(featureSpy.requeue.callCount, 1, 'requeue() should have been called');
     });
@@ -167,7 +169,7 @@ suite('Behat Test', function () {
         task.run();
 
         assert.equal(log.callCount, 2);
-        assert.equal(log.args[1][0], 'Failed: awesome.feature - 3 scenarios (1 passed, 2 failed) in 5m15s');
+        assert.equal(log.args[1][0], 'Failed: [feature_spy] awesome.feature - 3 scenarios (1 passed, 2 failed) in 5m15s');
         assert.equal(featureSpy.failed.callCount, 1, 'failed() should have been called');
         assert.deepEqual(featureSpy.failed.args[0][0], { passed: 1, failed: 2 }, 'failed() gets the scenario results');
         assert.equal(featureSpy.requeue.callCount, 0, 'requeue() should have NOT been called');
@@ -184,7 +186,7 @@ suite('Behat Test', function () {
         task.run();
 
         assert.equal(log.callCount, 2);
-        assert.equal(log.args[1][0], 'Error: awesome.feature - [object Object]ZOMG! I\'m dead!!');
+        assert.equal(log.args[1][0], 'Error: [feature_spy] awesome.feature - [object Object]ZOMG! I\'m dead!!');
         assert.equal(featureSpy.unknown.callCount, 1, 'unknown() should have been called');
         assert.equal(featureSpy.requeue.callCount, 0, 'requeue() should have NOT been called');
     });
@@ -202,8 +204,8 @@ suite('Behat Test', function () {
         task.run();
 
         assert.equal(log.callCount, 3);
-        assert.equal(log.args[1][0], 'Failed: awesome.feature - 2 scenarios (1 passed, 1 failed) in 5m15s');
-        assert.equal(log.args[2][0], 'Retrying: awesome.feature 1 of 2 time(s)');
+        assert.equal(log.args[1][0], 'Failed: [feature_spy] awesome.feature - 2 scenarios (1 passed, 1 failed) in 5m15s');
+        assert.equal(log.args[2][0], 'Retrying: [feature_spy] awesome.feature 1 of 2 time(s)');
         assert.equal(log.callCount, 3);
         assert.equal(mockExecutor.addTask.callCount, 3);
         assert.equal(featureSpy.failed.callCount, 1, 'failed() should have been called');
@@ -224,8 +226,8 @@ suite('Behat Test', function () {
         task.run();
 
         assert.equal(log.callCount, 3);
-        assert.equal(log.args[1][0], 'Failed: awesome.feature - 3 scenarios (1 passed, 2 pending) in 5m15s');
-        assert.equal(log.args[2][0], 'Retrying: awesome.feature 1 of 2 time(s)');
+        assert.equal(log.args[1][0], 'Failed: [feature_spy] awesome.feature - 3 scenarios (1 passed, 2 pending) in 5m15s');
+        assert.equal(log.args[2][0], 'Retrying: [feature_spy] awesome.feature 1 of 2 time(s)');
         assert.equal(log.callCount, 3);
         assert.equal(mockExecutor.addTask.callCount, 3);
         assert.equal(featureSpy.failed.callCount, 1, 'failed() should have been called');
