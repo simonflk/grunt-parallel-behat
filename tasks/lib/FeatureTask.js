@@ -12,60 +12,63 @@ var _ = require('underscore');
  * @param {String} filename
  */
 function FeatureTask (filename) {
-	this.id = _.uniqueId('feature_');
-	this.filename = filename;
-	this.descriptor = '[' + this.id + '] ' + this.filename;
-	this.results = [];
-	this.retries = 0;
-	this.ok = false;
+    this.id = _.uniqueId('feature_');
+    this.filename = filename;
+    this.descriptor = '[' + this.id + '] ' + this.filename;
+    this.results = [];
+    this.retries = 0;
+    this.ok = false;
 }
 
 _.extend(FeatureTask.prototype, {
-	/**
-	 * task is started - set start time on new result
-	 */
-	start: function () {
-		this.results.push({
-			start: +new Date()
-		});
-	},
+    /**
+     * task is started - set start time on new result
+     */
+    start: function () {
+        this.results.push({
+            start: +new Date()
+        });
+    },
 
-	/**
-	 * set task completion status & time on latest result
-	 *
-	 * @param {String} status
-	 */
-	setCompletion: function (status, result) {
-		var thisResult = _.last(this.results);
-		thisResult.status = status;
-		thisResult.result = result;
-		thisResult.end = +new Date();
-	},
+    /**
+     * set task completion status & time on latest result
+     *
+     * @param {String} status
+     */
+    setCompletion: function (status, result) {
+        var thisResult = _.last(this.results);
+        if (!thisResult) {
+            throw 'Cannot set completion=' + status + ' on task that was not started';
+        }
+        thisResult.status = status;
+        thisResult.result = result;
+        thisResult.end = +new Date();
+    },
 
-	seleniumTimeout: function () {
-		this.setCompletion('seleniumTimeout');
-	},
+    seleniumTimeout: function () {
+        this.setCompletion('seleniumTimeout');
+    },
 
-	forceKillTimeout: function () {
-		this.setCompletion('forceKillTimeout');
-	},
+    forceKillTimeout: function () {
+        this.setCompletion('forceKillTimeout');
+    },
 
-	failed: function (result) {
-		this.setCompletion('failed', result);
-	},
+    failed: function (result) {
+        this.setCompletion('failed', result);
+    },
 
-	unknown: function () {
-		this.setCompletion('unknown');
-	},
+    unknown: function () {
+        this.setCompletion('unknown');
+    },
 
-	succeeded: function (result) {
-		this.setCompletion('succeeded', result);
-		this.ok = true;
-	},
+    succeeded: function (result) {
+        this.setCompletion('succeeded', result);
+        this.ok = true;
+    },
 
-	requeue: function () {
-		this.retries++;
-	}
+    requeue: function () {
+        this.retries++;
+    }
 
 });
 

@@ -35,9 +35,9 @@ function BehatTask (options) {
 
         _.each(options.files, addTask);
 
-        options.executor.on('startedTask', taskStarted);
-        options.executor.on('finishedTask', taskFinished);
-        options.executor.on('finished', finish);
+        options.executor.on('startedTask', taskStarted.bind(this));
+        options.executor.on('finishedTask', taskFinished.bind(this));
+        options.executor.on('finished', finish.bind(this));
         options.executor.start();
     }
 
@@ -88,6 +88,7 @@ function BehatTask (options) {
     function taskStarted (cmd) {
         var task = this.getFeatureFromCommand(cmd);
         options.log('Started: [' + task.id + '] ' + cmd);
+        task.start();
         writeReport();
     }
 
@@ -104,10 +105,14 @@ function BehatTask (options) {
             output = stdout ? stdout.split('\n') : [],
             testResults = parseTestResults(output[output.length - 4]);
 
+        if (options.debug) {
+            options.log('\n\n/==============================================================================\\');
+        }
+
         if (!err) {
             options.log('Completed: ' + task.descriptor + ' - ' + output[output.length - 4] + ' in ' + output[output.length - 2]);
 
-            if (testResults.pending) {
+            if (testResults && testResults.pending) {
                 taskPendingOrFailed(cmd, task, testResults);
             } else {
                 task.succeeded(testResults);
@@ -139,6 +144,7 @@ function BehatTask (options) {
             if (err) options.log('\nerr: \n' + inspect(err));
             if (stderr) options.log('\nstderr: \n' + stderr);
             if (stdout) options.log('\nstdout: \n' + stdout);
+            options.log('\n\\==============================================================================/\n');
         }
     }
 
@@ -187,7 +193,7 @@ function BehatTask (options) {
      * @return {Object}  e.g. { passed: 6, failed: 1, pending: 1, unknown: 2 }
      */
     function parseTestResults (resultLine) {
-        var scenarioResults = /^\d+ scenarios \((.*)\)/.exec(resultLine),
+        var scenarioResults = /^\d+ scenarios? \((.*)\)/.exec(resultLine),
             result;
 
         // A string like "1 passed" or "3 passed, 2 pending, 1 failed"
