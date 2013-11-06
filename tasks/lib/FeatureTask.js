@@ -41,7 +41,7 @@ _.extend(FeatureTask.prototype, {
             throw 'Cannot set completion=' + status + ' on task that was not started';
         }
         thisResult.status = status;
-        thisResult.result = result;
+        thisResult.scenarios = result;
         thisResult.end = +new Date();
     },
 

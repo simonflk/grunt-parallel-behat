@@ -43,13 +43,13 @@ suite('Feature Test', function () {
     });
 
     test('#setCompletion(result)', function () {
-        var result = {
+        var scenarios = {
             status: 'whatever'
         };
-        task.setCompletion('awesome', result);
-        assert.equal(task.results[0].status, 'awesome', 'status set on new result');
+        task.setCompletion('awesome', assert);
+        scenarios.equal(task.results[0].status, 'awesome', 'status set on new result');
         assert.isNumber(task.results[0].end, 'latest result has a end time');
-        assert.equal(task.results[0].result, result, 'result set on new result');
+        assert.equal(task.results[0].scenarios, scenarios, 'result set on new result');
     });
 
     test('#setCompletion() twice', function () {
