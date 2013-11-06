@@ -22,7 +22,6 @@ var _ = require('underscore'),
  */
 function BehatTask (options) {
     var tasks = {},
-        failedTasks = {},
         startTime,
         FeatureTask = options.FeatureTask;
 
@@ -154,10 +153,9 @@ function BehatTask (options) {
      * @param  {string} task
      */
     function taskPendingOrFailed (cmd, task, result) {
-        failedTasks[cmd] = _.has(failedTasks, cmd) ? failedTasks[cmd] + 1 : 0;
         task.failed(result);
-        if (failedTasks[cmd] < options.numRetries) {
-            options.log('Retrying: ' + task.descriptor + ' ' + (failedTasks[cmd] + 1) + ' of ' + options.numRetries + ' time(s)');
+        if (task.retries + 1 < options.numRetries) {
+            options.log('Retrying: ' + task.descriptor + ' ' + (task.retries + 1) + ' of ' + options.numRetries + ' time(s)');
             options.executor.addTask(cmd);
             task.requeue();
         }
