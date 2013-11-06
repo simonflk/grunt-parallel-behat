@@ -46,8 +46,8 @@ suite('Feature Test', function () {
         var scenarios = {
             status: 'whatever'
         };
-        task.setCompletion('awesome', assert);
-        scenarios.equal(task.results[0].status, 'awesome', 'status set on new result');
+        task.setCompletion('awesome', scenarios);
+        assert.equal(task.results[0].status, 'awesome', 'status set on new result');
         assert.isNumber(task.results[0].end, 'latest result has a end time');
         assert.equal(task.results[0].scenarios, scenarios, 'result set on new result');
     });
