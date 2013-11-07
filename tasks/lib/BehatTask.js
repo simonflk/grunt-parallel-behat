@@ -177,7 +177,7 @@ function BehatTask (options) {
      */
     function writeReport () {
         if (options.output) {
-            var taskArray = _.value(tasks),
+            var taskArray = _.values(tasks),
                 data = {
                     start: startTime,
                     tasks: taskArray,
