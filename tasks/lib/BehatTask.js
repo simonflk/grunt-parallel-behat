@@ -218,7 +218,7 @@ function BehatTask (options) {
             })
             .object()
             .value();
-            result.total = scenarioResults[1];
+            result.total = parseInt(scenarioResults[1]);
         }
         return result;
     }
