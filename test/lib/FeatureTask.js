@@ -20,12 +20,14 @@ suite('Feature Test', function () {
         assert.lengthOf(task.results, 0, 'results is empty');
         assert.isFalse(task.ok, 'is not ok');
         assert.equal(0, task.retries);
+        assert.isFalse(task.running);
     });
 
     test('#start()', function () {
+        assert.isTrue(task.running);
         assert.lengthOf(task.results, 1, 'results has an element');
         assert.isNumber(task.results[0].start, 'first result has a start time');
-        assert.isUndefined(task.results[0].end, 'new result has no end time');
+        assert.isUndefined(task.results[0].duration, 'new result has no duration');
     });
 
     test('#start() twice', function () {
@@ -33,13 +35,14 @@ suite('Feature Test', function () {
         assert.lengthOf(task.results, 2, 'adds another result');
         assert.isNumber(task.results[1].start, 'new result has a start time');
         assert.isTrue(task.results[1].start >= task.results[0].start, 'newer result has a newer start');
-        assert.isUndefined(task.results[1].end, 'new result has no end time');
+        assert.isUndefined(task.results[1].duration, 'new result has no duration');
     });
 
     test('#setCompletion()', function () {
         task.setCompletion('awesome');
+        assert.isFalse(task.running);
         assert.equal(task.results[0].status, 'awesome', 'status set on new result');
-        assert.isNumber(task.results[0].end, 'latest result has a end time');
+        assert.isNumber(task.results[0].duration, 'latest result has a duration');
     });
 
     test('#setCompletion(result)', function () {
@@ -48,7 +51,7 @@ suite('Feature Test', function () {
         };
         task.setCompletion('awesome', scenarios);
         assert.equal(task.results[0].status, 'awesome', 'status set on new result');
-        assert.isNumber(task.results[0].end, 'latest result has a end time');
+        assert.isNumber(task.results[0].duration, 'latest result has a duration');
         assert.equal(task.results[0].scenarios, scenarios, 'result set on new result');
     });
 
@@ -58,9 +61,9 @@ suite('Feature Test', function () {
         task.setCompletion('awesomer');
 
         assert.equal(task.results[0].status, 'awesome', 'status set on new result');
-        assert.isNumber(task.results[0].end, 'latest result has a end time');
+        assert.isNumber(task.results[0].duration, 'latest result has a duration');
         assert.equal(task.results[1].status, 'awesomer', 'status set on new result');
-        assert.isNumber(task.results[1].end, 'latest result has a end time');
+        assert.isNumber(task.results[1].duration, 'latest result has a duration');
     });
 
     test('#seleniumTimeout()', function () {

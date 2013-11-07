@@ -18,6 +18,7 @@ function FeatureTask (filename) {
     this.results = [];
     this.retries = 0;
     this.ok = false;
+    this.running = false;
 }
 
 _.extend(FeatureTask.prototype, {
@@ -28,6 +29,7 @@ _.extend(FeatureTask.prototype, {
         this.results.push({
             start: +new Date()
         });
+        this.running = true;
     },
 
     /**
@@ -42,7 +44,8 @@ _.extend(FeatureTask.prototype, {
         }
         thisResult.status = status;
         thisResult.scenarios = result;
-        thisResult.end = +new Date();
+        thisResult.duration = new Date() - thisResult.start;
+        this.running = false;
     },
 
     seleniumTimeout: function () {

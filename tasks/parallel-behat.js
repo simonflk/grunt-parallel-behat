@@ -16,7 +16,8 @@ var glob = require('glob'),
         baseDir: './',
         debug: false,
         numRetries: 0,
-        timeout: 600000
+        timeout: 600000,
+        init: function () {}
     };
 
 /**
@@ -30,8 +31,9 @@ function GruntTask (grunt) {
         behat;
 
     grunt.registerTask('behat', 'Parallel behat', function () {
-        var done = this.async();
+        options.init();
 
+        var done = this.async();
         glob(options.src, function (err, files) {
             options.files = files;
             options.done = done;

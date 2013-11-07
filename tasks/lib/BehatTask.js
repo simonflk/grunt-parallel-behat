@@ -177,9 +177,18 @@ function BehatTask (options) {
      */
     function writeReport () {
         if (options.output) {
-            fs.writeFile(options.output, JSON.stringify(_.values(tasks)), function (err) {
+            var taskArray = _.value(tasks),
+                data = {
+                    start: startTime,
+                    tasks: taskArray,
+                    total: taskArray.length,
+                    ok: _.where(taskArray, { ok: true }).length,
+                    running: _.where(taskArray, { running: true }).length,
+                    retries: _.chain(taskArray).pluck('retries').reduce(function (m,n) { return m + n; }, 0).value()
+                };
+            fs.writeFile(options.output, JSON.stringify(data), function (err) {
                 if (err) {
-                    options.log('\n[Error writing to logfile "' = options.output + '" -- ' + err);
+                    options.log('\n>>>Error writing to report file "' + options.output + '" -- ' + inspect(err));
                 }
             });
         }
