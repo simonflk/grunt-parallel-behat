@@ -11,7 +11,17 @@ var exec = require('child_process').exec,
 function ParallelExec (maxTasks, execOptions) {
     var running = false,
         queue = [],
-        runningTasks = 0;
+        processes = {},
+        runningTasks = 0,
+        shuttingDown = false;
+
+    process.on('SIGINT', terminateTasks);
+
+    function terminateTasks () {
+        shuttingDown = true;
+        _.chain(processes).values().invoke('kill');
+        process.exit();
+    }
 
     /**
      * True if there are items on the queue and we have space to run a task
@@ -19,7 +29,7 @@ function ParallelExec (maxTasks, execOptions) {
      * @return {boolean}
      */
     function canStartTask () {
-        return queue.length > 0 && running && runningTasks < maxTasks;
+        return queue.length > 0 && running && runningTasks < maxTasks && !shuttingDown;
     }
 
     /**
@@ -44,7 +54,7 @@ function ParallelExec (maxTasks, execOptions) {
 
             runningTasks++;
             this.emit('startedTask', cmd);
-            exec(cmd, execOptions, _.partial(taskDone, cmd));
+            processes[cmd] = exec(cmd, execOptions, _.partial(taskDone, cmd));
         }
     }
 
@@ -53,6 +63,7 @@ function ParallelExec (maxTasks, execOptions) {
      */
     function taskDone (cmd, err, stdout, stderr) {
         runningTasks--;
+        delete processes[cmd];
         this.emit('finishedTask', cmd, err, stdout, stderr);
 
         if (canStartTask()) {
