@@ -118,12 +118,12 @@ function BehatTask (options) {
             }
         } else if (err.killed) {
             options.log('Killed (timeout): ' + task.descriptor + ' - adding to the back of the queue.');
-            options.executor.addTask(task);
+            options.executor.addTask(cmd);
             task.forceKillTimeout();
             task.requeue();
         } else if (err.code === 13) {
             options.log('Selenium timeout: ' + task.descriptor + ' - adding to the back of the queue.');
-            options.executor.addTask(task);
+            options.executor.addTask(cmd);
             task.seleniumTimeout();
             task.requeue();
         }
@@ -177,6 +177,7 @@ function BehatTask (options) {
      */
     function writeReport () {
         if (options.output) {
+            options.log('[writing report]');
             var taskArray = _.values(tasks),
                 data = {
                     start: startTime,
@@ -185,7 +186,10 @@ function BehatTask (options) {
                     total: taskArray.length,
                     ok: _.where(taskArray, { ok: true }).length,
                     running: _.where(taskArray, { running: true }).length,
-                    retries: _.chain(taskArray).pluck('retries').reduce(function (m,n) { return m + n; }, 0).value()
+                    retries: _.chain(taskArray).pluck('retries').reduce(function (m,n) { return m + n; }, 0).value(),
+                    killed: _.chain(taskArray).filter(function (t) {
+                        return _.where(t.results, {status: 'forceKillTimeout'}).length;
+                    }).size().value()
                 };
             fs.writeFile(options.output, JSON.stringify(data), function (err) {
                 if (err) {
