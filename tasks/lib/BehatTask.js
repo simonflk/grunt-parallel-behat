@@ -191,11 +191,12 @@ function BehatTask (options) {
                         return _.where(t.results, {status: 'forceKillTimeout'}).length;
                     }).size().value()
                 };
-            fs.writeFile(options.output, JSON.stringify(data), function (err) {
-                if (err) {
-                    options.log('\n>>>Error writing to report file "' + options.output + '" -- ' + inspect(err));
-                }
-            });
+            try {
+                fs.writeFileSync(options.output, JSON.stringify(data));
+            }
+            catch (err) {
+                options.log('\n>>>Error writing to report file "' + options.output + '" -- ' + inspect(err));
+            }
         }
     }
 
