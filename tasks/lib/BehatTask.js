@@ -110,26 +110,23 @@ function BehatTask (options) {
 
         if (!err) {
             options.log('Completed: ' + task.descriptor + ' - ' + output[output.length - 4] + ' in ' + output[output.length - 2]);
-
             if (testResults && testResults.pending) {
-                taskPendingOrFailed(cmd, task, testResults);
+                task.failed(testResults);
             } else {
                 task.succeeded(testResults);
             }
         } else if (err.killed) {
             options.log('Killed (timeout): ' + task.descriptor + ' - adding to the back of the queue.');
-            options.executor.addTask(cmd);
             task.forceKillTimeout();
             task.requeue();
         } else if (err.code === 13) {
             options.log('Selenium timeout: ' + task.descriptor + ' - adding to the back of the queue.');
-            options.executor.addTask(cmd);
             task.seleniumTimeout();
             task.requeue();
         }
         else if (err.code === 1) {
             options.log('Failed: ' + task.descriptor + ' - ' + output[output.length - 4] + ' in ' + output[output.length - 2]);
-            taskPendingOrFailed(cmd, task, testResults);
+            task.failed(testResults);
         }
         else {
             options.log('Error: ' + task.descriptor + ' - ' + err + stdout);
@@ -145,6 +142,12 @@ function BehatTask (options) {
             if (stdout) options.log('\nstdout: \n' + stdout);
             options.log('\n\\==============================================================================/\n');
         }
+
+        if (_.contains(['seleniumTimeout', 'forceKillTimeout'], task.getStatus())) {
+            options.executor.addTask(cmd);
+        } else if (task.getStatus() === 'failed') {
+            taskPendingOrFailed(cmd, task);
+        }
     }
 
     /**
@@ -152,8 +155,7 @@ function BehatTask (options) {
      *
      * @param  {string} task
      */
-    function taskPendingOrFailed (cmd, task, result) {
-        task.failed(result);
+    function taskPendingOrFailed (cmd, task) {
         if (task.retries + 1 < options.numRetries) {
             options.log('Retrying: ' + task.descriptor + ' ' + (task.retries + 1) + ' of ' + options.numRetries + ' time(s)');
             options.executor.addTask(cmd);

@@ -48,7 +48,7 @@ suite('Behat Test', function () {
         return task;
     }
 
-    function makeFeatureSpy (filename, methods) {
+    function makeFeatureSpy (filename, methods, status) {
         var featureSpy = new FeatureTask();
         featureSpy.filename = filename;
         featureSpy.id = 'feature_spy';
@@ -56,6 +56,9 @@ suite('Behat Test', function () {
         _.each(methods, function (m) {
             stub(featureSpy, m);
         });
+        if (status) {
+            stub(featureSpy, 'getStatus', function () { return status; });
+        }
         stub(task, 'getFeatureFromCommand', function () { return featureSpy; });
         return featureSpy;
     }
@@ -107,7 +110,7 @@ suite('Behat Test', function () {
         assert(log.args[3][0].indexOf('Finished in') > -1);
         assert.equal(featureSpy.start.callCount, 1, 'start() should have been called');
         assert.equal(featureSpy.succeeded.callCount, 1, 'succeeded() should have been called');
-        assert.deepEqual(featureSpy.succeeded.args[0][0], { passed: 3 }, 'succeeded() gets the scenario results');
+        assert.deepEqual(featureSpy.succeeded.args[0][0], { passed: 3, total: 3 }, 'succeeded() gets the scenario results');
         assert.equal(featureSpy.requeue.callCount, 0, 'requeue() should NOT have been called');
     });
 
@@ -124,7 +127,7 @@ suite('Behat Test', function () {
         assert.equal(mockExecutor.addTask.callCount, 2);
         assert.equal(log.args[1][0], 'Completed: [feature_spy] awesome.feature - 3 scenarios (2 passed, 1 pending) in 5m15s');
         assert.equal(featureSpy.failed.callCount, 1, 'failed() should have been called');
-        assert.deepEqual(featureSpy.failed.args[0][0], { passed: 2, pending: 1 }, 'failed() gets the scenario results');
+        assert.deepEqual(featureSpy.failed.args[0][0], { passed: 2, pending: 1, total: 3 }, 'failed() gets the scenario results');
         assert.equal(featureSpy.requeue.callCount, 0, 'requeue() should have been called');
     });
 
@@ -134,7 +137,7 @@ suite('Behat Test', function () {
         });
 
         mockExecutor.isFinished = stub().returns(false);
-        featureSpy = makeFeatureSpy('awesome.feature', ['seleniumTimeout', 'requeue']);
+        featureSpy = makeFeatureSpy('awesome.feature', ['seleniumTimeout', 'requeue'], 'seleniumTimeout');
         task.run();
 
         assert.equal(log.callCount, 2, 'log call count');
@@ -150,7 +153,7 @@ suite('Behat Test', function () {
         });
 
         mockExecutor.isFinished = stub().returns(false);
-        featureSpy = makeFeatureSpy('awesome.feature', ['forceKillTimeout', 'requeue']);
+        featureSpy = makeFeatureSpy('awesome.feature', ['forceKillTimeout', 'requeue'], 'forceKillTimeout');
         task.run();
 
         assert.equal(log.callCount, 2, 'log call count');
@@ -172,7 +175,7 @@ suite('Behat Test', function () {
         assert.equal(log.callCount, 2, 'log call count');
         assert.equal(log.args[1][0], 'Failed: [feature_spy] awesome.feature - 3 scenarios (1 passed, 2 failed) in 5m15s');
         assert.equal(featureSpy.failed.callCount, 1, 'failed() should have been called');
-        assert.deepEqual(featureSpy.failed.args[0][0], { passed: 1, failed: 2 }, 'failed() gets the scenario results');
+        assert.deepEqual(featureSpy.failed.args[0][0], { passed: 1, failed: 2, total: 3 }, 'failed() gets the scenario results');
         assert.equal(featureSpy.requeue.callCount, 0, 'requeue() should have NOT been called');
     });
 
@@ -196,7 +199,7 @@ suite('Behat Test', function () {
         task = makeTask({
             numRetries: 2,
         });
-        featureSpy = makeFeatureSpy('awesome.feature', ['failed', 'requeue']);
+        featureSpy = makeFeatureSpy('awesome.feature', ['failed', 'requeue'], 'failed');
         mockExecutor.isFinished = stub().returns(false);
         stub(mockExecutor, 'start', function () {
             mockExecutor.callbacks.finishedTask.call(task, 'behat   awesome.feature', {code: 1}, '2 scenarios (1 passed, 1 failed)\n\n5m15s\n');
@@ -209,7 +212,7 @@ suite('Behat Test', function () {
         assert.equal(log.args[2][0], 'Retrying: [feature_spy] awesome.feature 1 of 2 time(s)');
         assert.equal(mockExecutor.addTask.callCount, 3);
         assert.equal(featureSpy.failed.callCount, 1, 'failed() should have been called');
-        assert.deepEqual(featureSpy.failed.args[0][0], { passed: 1, failed: 1 }, 'failed() gets the scenario results');
+        assert.deepEqual(featureSpy.failed.args[0][0], { passed: 1, failed: 1, total: 2 }, 'failed() gets the scenario results');
         assert.equal(featureSpy.requeue.callCount, 1, 'requeue() should have been called');
     });
 
@@ -217,7 +220,7 @@ suite('Behat Test', function () {
         task = makeTask({
             numRetries: 2,
         });
-        featureSpy = makeFeatureSpy('awesome.feature', ['failed', 'requeue']);
+        featureSpy = makeFeatureSpy('awesome.feature', ['failed', 'requeue'], 'failed');
 
         stub(mockExecutor, 'start', function () {
             mockExecutor.callbacks.finishedTask.call(task, 'behat   awesome.feature', {code: 1}, '3 scenarios (1 passed, 2 pending)\n\n5m15s\n');
@@ -230,7 +233,7 @@ suite('Behat Test', function () {
         assert.equal(log.args[2][0], 'Retrying: [feature_spy] awesome.feature 1 of 2 time(s)');
         assert.equal(mockExecutor.addTask.callCount, 3);
         assert.equal(featureSpy.failed.callCount, 1, 'failed() should have been called');
-        assert.deepEqual(featureSpy.failed.args[0][0], { passed: 1, pending: 2 }, 'failed() gets the scenario results');
+        assert.deepEqual(featureSpy.failed.args[0][0], { passed: 1, pending: 2, total: 3 }, 'failed() gets the scenario results');
         assert.equal(featureSpy.requeue.callCount, 1, 'requeue() should have been called');
     });
 

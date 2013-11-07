@@ -48,6 +48,13 @@ _.extend(FeatureTask.prototype, {
         this.running = false;
     },
 
+    getStatus: function () {
+        var thisResult = _.last(this.results);
+        if (thisResult) {
+            return thisResult.status;
+        }
+    },
+
     seleniumTimeout: function () {
         this.setCompletion('seleniumTimeout');
     },
