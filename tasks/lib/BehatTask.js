@@ -180,6 +180,7 @@ function BehatTask (options) {
             var taskArray = _.values(tasks),
                 data = {
                     start: startTime,
+                    duration: new Date() - startTime,
                     tasks: taskArray,
                     total: taskArray.length,
                     ok: _.where(taskArray, { ok: true }).length,
@@ -200,12 +201,12 @@ function BehatTask (options) {
      * @return {Object}  e.g. { passed: 6, failed: 1, pending: 1, unknown: 2 }
      */
     function parseTestResults (resultLine) {
-        var scenarioResults = /^\d+ scenarios? \((.*)\)/.exec(resultLine),
+        var scenarioResults = /^(\d+) scenarios? \((.*)\)/.exec(resultLine),
             result;
 
         // A string like "1 passed" or "3 passed, 2 pending, 1 failed"
         if (scenarioResults && scenarioResults[1]) {
-            result = _.chain(scenarioResults[1].split(', '))
+            result = _.chain(scenarioResults[2].split(', '))
             .map(function (fragment) {
                 var typeResult = fragment.split(' ').reverse();
                 typeResult[1] = parseInt(typeResult[1]);
@@ -213,6 +214,7 @@ function BehatTask (options) {
             })
             .object()
             .value();
+            result.total = scenarioResults[1];
         }
         return result;
     }
