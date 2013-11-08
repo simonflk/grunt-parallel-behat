@@ -123,7 +123,10 @@ function BehatTask (options) {
         } else if (err.code === 13) {
             options.log('Selenium timeout: ' + task.descriptor + ' - adding to the back of the queue.');
             task.seleniumTimeout();
-            silentRequeue = true;
+            if (task.waitTimeouts === 1) {
+                // todo add config option
+                silentRequeue = true;
+            }
         }
         else if (err.code === 1) {
             options.log('Failed: ' + task.descriptor + ' - ' + output[output.length - 4] + ' in ' + output[output.length - 2]);

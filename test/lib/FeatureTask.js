@@ -68,10 +68,9 @@ suite('Feature Test', function () {
 
     test('#seleniumTimeout()', function () {
         assert.equal(task.results.length, 1);
-        task.waitTimeouts = 4;
         task.seleniumTimeout();
         assert.equal(task.results.length, 0);
-        assert.equal(task.waitTimeouts, 5);
+        assert.equal(task.waitTimeouts, 1);
         assert.isFalse(task.running);
     });
 

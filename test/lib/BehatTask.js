@@ -138,6 +138,7 @@ suite('Behat Test', function () {
 
         mockExecutor.isFinished = stub().returns(false);
         featureSpy = makeFeatureSpy('awesome.feature', ['seleniumTimeout', 'requeue'], 'seleniumTimeout');
+        featureSpy.waitTimeouts = 1;
         task.run();
 
         assert.equal(log.callCount, 2, 'log call count');
