@@ -157,7 +157,7 @@ suite('Behat Test', function () {
         task.run();
 
         assert.equal(log.callCount, 2, 'log call count');
-        assert.equal(mockExecutor.addTask.callCount, 3);
+        assert.equal(mockExecutor.addTask.callCount, 2);
         assert.equal(log.args[1][0], 'Killed (timeout): [feature_spy] awesome.feature - adding to the back of the queue.');
         assert.equal(featureSpy.forceKillTimeout.callCount, 1, 'forceKillTimeout() should have been called');
         assert.equal(featureSpy.requeue.callCount, 1, 'requeue() should have been called');

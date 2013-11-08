@@ -102,7 +102,8 @@ function BehatTask (options) {
     function taskFinished (cmd, err, stdout, stderr) {
         var task = this.getFeatureFromCommand(cmd),
             output = stdout ? stdout.split('\n') : [],
-            testResults = parseTestResults(output[output.length - 4]);
+            testResults = parseTestResults(output[output.length - 4]),
+            silentRequeue = false;
 
         if (options.debug) {
             options.log('\n\n/==============================================================================\\');
@@ -122,6 +123,7 @@ function BehatTask (options) {
         } else if (err.code === 13) {
             options.log('Selenium timeout: ' + task.descriptor + ' - adding to the back of the queue.');
             task.seleniumTimeout();
+            silentRequeue = true;
         }
         else if (err.code === 1) {
             options.log('Failed: ' + task.descriptor + ' - ' + output[output.length - 4] + ' in ' + output[output.length - 2]);
@@ -142,10 +144,10 @@ function BehatTask (options) {
             options.log('\n\\==============================================================================/\n');
         }
 
-        if (_.contains(['seleniumTimeout', 'forceKillTimeout'], task.getStatus())) {
-            options.executor.addTask(cmd);
-        } else if (task.getStatus() === 'failed') {
+        if (_.contains(['failed', 'forceKillTimeout'], task.getStatus())) {
             taskPendingOrFailed(cmd, task);
+        } else if (silentRequeue) {
+            options.executor.addTask(cmd);
         }
     }
 
