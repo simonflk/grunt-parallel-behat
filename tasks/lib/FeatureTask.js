@@ -19,6 +19,7 @@ function FeatureTask (filename) {
     this.retries = 0;
     this.ok = false;
     this.running = false;
+    this.waitTimeouts = 0;
 }
 
 _.extend(FeatureTask.prototype, {
@@ -74,7 +75,8 @@ _.extend(FeatureTask.prototype, {
     },
 
     seleniumTimeout: function () {
-        this.setCompletion('seleniumTimeout');
+        this.results.pop();
+        this.waitTimeouts++;
     },
 
     forceKillTimeout: function () {

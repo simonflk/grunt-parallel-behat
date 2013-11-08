@@ -67,10 +67,11 @@ suite('Feature Test', function () {
     });
 
     test('#seleniumTimeout()', function () {
-        task.setCompletion = spy();
+        assert.equal(task.results.length, 1);
+        task.waitTimeouts = 4;
         task.seleniumTimeout();
-        assert.equal(task.setCompletion.callCount, 1);
-        assert.isTrue(task.setCompletion.calledWith('seleniumTimeout'));
+        assert.equal(task.results.length, 0);
+        assert.equal(task.waitTimeouts, 5);
     });
 
     test('#forceKillTimeout()', function () {

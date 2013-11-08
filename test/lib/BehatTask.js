@@ -144,7 +144,7 @@ suite('Behat Test', function () {
         assert.equal(mockExecutor.addTask.callCount, 3);
         assert.equal(log.args[1][0], 'Selenium timeout: [feature_spy] awesome.feature - adding to the back of the queue.');
         assert.equal(featureSpy.seleniumTimeout.callCount, 1, 'seleniumTimeout() should have been called');
-        assert.equal(featureSpy.requeue.callCount, 1, 'requeue() should have been called');
+        assert.equal(featureSpy.requeue.callCount, 0, 'requeue() should NOT have been called');
     });
 
     test('handles per-feature timeouts', function () {
