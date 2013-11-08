@@ -179,15 +179,17 @@ function BehatTask (options) {
      */
     function writeReport () {
         if (options.output) {
-            options.log('[writing report]');
-            var taskArray = _.values(tasks),
+            var now = +new Date(),
+                taskArray = _.values(tasks),
                 data = {
                     start: startTime,
                     duration: new Date() - startTime,
                     tasks: taskArray,
                     total: taskArray.length,
                     ok: _.where(taskArray, { ok: true }).length,
-                    running: _.where(taskArray, { running: true }).length,
+                    running: _.chain(taskArray).filter(function (t) {
+                        return t.getCurrentDuration() >= 30;
+                    }).size().value(),
                     retries: _.chain(taskArray).pluck('retries').reduce(function (m,n) { return m + n; }, 0).value(),
                     killed: _.chain(taskArray).filter(function (t) {
                         return _.where(t.results, {status: 'forceKillTimeout'}).length;

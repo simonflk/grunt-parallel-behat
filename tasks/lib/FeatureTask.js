@@ -48,10 +48,28 @@ _.extend(FeatureTask.prototype, {
         this.running = false;
     },
 
+    /**
+     * Gets the status of the most recent execution
+     *
+     * @return {String}
+     */
     getStatus: function () {
         var thisResult = _.last(this.results);
         if (thisResult) {
             return thisResult.status;
+        }
+    },
+
+    /**
+     * Get the duration of the current executin in seconds
+     *
+     * @return {integer}
+     */
+    getCurrentDuration: function () {
+        if (this.running) {
+            return Math.round((+new Date() - _.last(this.results).start) / 1000);
+        } else {
+            return 0;
         }
     },
 

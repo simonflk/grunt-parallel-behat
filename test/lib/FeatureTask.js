@@ -130,4 +130,24 @@ suite('Feature Test', function () {
         task.requeue();
         assert.equal(task.retries, 2);
     });
+
+    test('#getStatus() (not started)', function () {
+        task = new FeatureTask('awesome.feature');
+        assert.isUndefined(task.getStatus());
+    });
+
+    test('#getStatus() (started)', function () {
+        task.results[0].status = 'foo';
+        assert.equal(task.getStatus(), 'foo');
+    });
+
+    test('#getCurrentDuration() (not started)', function () {
+        task = new FeatureTask('awesome.feature');
+        assert.equal(task.getCurrentDuration(), 0);
+    });
+
+    test('#getCurrentDuration() (started)', function () {
+        task.results[0].start = +new Date() - 2000;
+        assert.equal(task.getCurrentDuration(), 2);
+    });
 });
