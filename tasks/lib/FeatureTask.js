@@ -75,6 +75,7 @@ _.extend(FeatureTask.prototype, {
     },
 
     seleniumTimeout: function () {
+        this.running = false;
         this.results.pop();
         this.waitTimeouts++;
     },

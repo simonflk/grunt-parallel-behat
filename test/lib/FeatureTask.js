@@ -72,6 +72,7 @@ suite('Feature Test', function () {
         task.seleniumTimeout();
         assert.equal(task.results.length, 0);
         assert.equal(task.waitTimeouts, 5);
+        assert.isFalse(task.running);
     });
 
     test('#forceKillTimeout()', function () {
