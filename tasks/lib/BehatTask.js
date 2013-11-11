@@ -119,7 +119,6 @@ function BehatTask (options) {
         } else if (err.killed) {
             options.log('Killed (timeout): ' + task.descriptor + ' - adding to the back of the queue.');
             task.forceKillTimeout();
-            task.requeue();
         } else if (err.code === 13) {
             options.log('Selenium timeout: ' + task.descriptor + ' - adding to the back of the queue.');
             task.seleniumTimeout();
