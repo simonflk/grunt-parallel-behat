@@ -23,7 +23,8 @@ var _ = require('underscore'),
 function BehatTask (options) {
     var tasks = {},
         startTime,
-        FeatureTask = options.FeatureTask;
+        FeatureTask = options.FeatureTask,
+        cleanupTimeout;
 
     /**
      * Create a behat command for each file and run it using the executor
@@ -33,6 +34,10 @@ function BehatTask (options) {
         options.log('Found ' + options.files.length + ' feature file(s). Running ' + options.maxProcesses + ' at a time.');
 
         _.each(options.files, addTask);
+
+        if (options.maxExecutionTime) {
+            cleanupTimeout = setTimeout(abortTasks.bind(this), options.maxExecutionTime);
+        }
 
         options.executor.on('startedTask', taskStarted.bind(this));
         options.executor.on('finishedTask', taskFinished.bind(this));
@@ -167,10 +172,25 @@ function BehatTask (options) {
     }
 
     /**
+     * Aborts all running tasks, and exits
+     */
+    function abortTasks () {
+        var totalTime = Math.floor((new Date() - startTime) / 1000);
+
+        options.log('\nAborting tasks after ' + Math.floor(totalTime / 60) + 'm' + totalTime % 60 + 's');
+        options.executor.terminateTasks();
+        options.done();
+    }
+
+    /**
      * Output the final run time and emit the finished event
      */
     function finish () {
         var totalTime = Math.floor((new Date() - startTime) / 1000);
+
+        if (cleanupTimeout) {
+            clearTimeout(cleanupTimeout);
+        }
 
         options.log('\nFinished in ' + Math.floor(totalTime / 60) + 'm' + totalTime % 60 + 's');
         options.done();

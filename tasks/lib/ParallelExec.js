@@ -20,7 +20,6 @@ function ParallelExec (maxTasks, execOptions) {
     function terminateTasks () {
         shuttingDown = true;
         _.chain(processes).values().invoke('kill');
-        process.exit();
     }
 
     /**
