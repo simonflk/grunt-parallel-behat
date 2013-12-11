@@ -215,7 +215,9 @@ function BehatTask (options) {
                     }).size().value(),
                     retries: _.chain(taskArray).pluck('retries').reduce(function (m,n) { return m + n; }, 0).value(),
                     killed: _.chain(taskArray).filter(function (t) {
-                        return _.where(t.results, {status: 'forceKillTimeout'}).length;
+                        var numForceKilled = _.where(t.results, {status: 'forceKillTimeout'}).length,
+                            featureWasOnlyKilled = t.results.length === numForceKilled;
+                        return !t.running && featureWasOnlyKilled;
                     }).size().value()
                 };
             try {
