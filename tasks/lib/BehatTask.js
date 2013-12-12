@@ -199,6 +199,7 @@ function BehatTask (options) {
     /**
      * Write JSON report of all feature tasks
      * requires `output` option to be set
+     * TODO: refactor this into a separate BehatReporter
      */
     function writeReport () {
         if (options.output) {

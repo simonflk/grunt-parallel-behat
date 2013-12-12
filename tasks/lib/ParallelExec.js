@@ -87,6 +87,7 @@ function ParallelExec (maxTasks, execOptions) {
 
     this.start = start;
     this.addTask = addTask;
+    this.terminateTasks = terminateTasks;
 
     // inherit from event emitter
     EventEmitter.call(this);
