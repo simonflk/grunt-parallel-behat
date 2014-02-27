@@ -1,4 +1,4 @@
-# grunt-parallel-behat [![Build Status](https://travis-ci.org/linusnorton/grunt-parallel-behat.png?branch=master)](https://travis-ci.org/linusnorton/grunt-parallel-behat)
+# grunt-parallel-behat [![Build Status](https://travis-ci.org/bbc-fm-nk-core-eng/grunt-parallel-behat.png)](https://travis-ci.org/bbc-fm-nk-core-eng/grunt-parallel-behat)
 
 > Run Behat Features in Parallel
 
