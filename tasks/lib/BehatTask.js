@@ -211,15 +211,18 @@ function BehatTask (options) {
                     tasks: taskArray,
                     total: taskArray.length,
                     ok: _.where(taskArray, { ok: true }).length,
-                    running: _.chain(taskArray).filter(function (t) {
+                    running: _.filter(taskArray, function (t) {
                         return t.getCurrentDuration() >= 30;
-                    }).size().value(),
-                    retries: _.chain(taskArray).pluck('retries').reduce(function (m,n) { return m + n; }, 0).value(),
-                    killed: _.chain(taskArray).filter(function (t) {
-                        var numForceKilled = _.where(t.results, {status: 'forceKillTimeout'}).length,
-                            featureWasOnlyKilled = t.results.length === numForceKilled;
-                        return !t.running && featureWasOnlyKilled;
-                    }).size().value()
+                    }).length,
+                    retries: _.chain(taskArray)
+                        .pluck('retries')
+                        .reduce(function (m,n) {
+                            return m + n;
+                        }, 0)
+                        .value(),
+                    killed: _.filter(taskArray, function (t) {
+                        return t.hasProblems();
+                    }).length
                 };
             try {
                 fs.writeFileSync(options.output, JSON.stringify(data));
