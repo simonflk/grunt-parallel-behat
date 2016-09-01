@@ -132,7 +132,7 @@ function BehatTask (options) {
                 silentRequeue = true;
             }
         } else if (err.code === 255) {
-            options.log('BrowserStack Tunnel failure: Retrying ' + task.descriptor + ' - ' + err + stdout);
+            options.log('BrowserStack Tunnel failure: ' + task.descriptor + ' -  adding to the back of the queue ' + err + stdout);
             task.seleniumTimeout();
             silentRequeue = true;
 
