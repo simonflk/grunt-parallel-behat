@@ -134,7 +134,7 @@ function BehatTask (options) {
         } else if (err.code === 255) {
             options.log('Curl Error 255: ' + task.descriptor + ' -  adding to the back of the queue.');
             task.curlError();
-            if (task.waitTimeouts <= 5) {
+            if (task.curlErrors <= 5) {
                 silentRequeue = true;
             }
         } else if (err.code === 1) {
