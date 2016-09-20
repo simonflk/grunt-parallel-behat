@@ -20,6 +20,7 @@ function FeatureTask (filename) {
     this.ok = false;
     this.running = false;
     this.waitTimeouts = 0;
+    this.curlErrors = 0;
 }
 
 _.extend(FeatureTask.prototype, {
@@ -92,6 +93,12 @@ _.extend(FeatureTask.prototype, {
         this.running = false;
         this.results.pop();
         this.waitTimeouts++;
+    },
+
+    curlError: function () {
+        this.running = false;
+        this.results.pop();
+        this.curlErrors++;
     },
 
     forceKillTimeout: function () {

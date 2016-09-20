@@ -132,10 +132,11 @@ function BehatTask (options) {
                 silentRequeue = true;
             }
         } else if (err.code === 255) {
-            options.log('BrowserStack Tunnel failure: ' + task.descriptor + ' -  adding to the back of the queue ' + err + stdout);
-            task.seleniumTimeout();
-            silentRequeue = true;
-
+            options.log('Curl Error 255: ' + task.descriptor + ' -  adding to the back of the queue.');
+            task.curlError();
+            if (task.waitTimeouts <= 5) {
+                silentRequeue = true;
+            }
         } else if (err.code === 1) {
             options.log('Failed: ' + task.descriptor + ' - ' + output[output.length - 4] + ' in ' + output[output.length - 2]);
             task.failed(testResults);

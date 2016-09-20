@@ -148,6 +148,23 @@ suite('Behat Test', function () {
         assert.equal(featureSpy.requeue.callCount, 0, 'requeue() should NOT have been called');
     });
 
+    test('handles 255 errors', function () {
+        stub(mockExecutor, 'start', function () {
+            mockExecutor.callbacks.finishedTask.call(task, 'behat   awesome.feature', {code: 255}, '');
+        });
+
+        mockExecutor.isFinished = stub().returns(false);
+        featureSpy = makeFeatureSpy('awesome.feature', ['curlError', 'requeue'], 'curlError');
+        featureSpy.waitTimeouts = 1;
+        task.run();
+
+        assert.equal(log.callCount, 2, 'log call count');
+        assert.equal(mockExecutor.addTask.callCount, 3);
+        assert.match(log.args[1][0], /Curl Error 255/);
+        assert.equal(featureSpy.curlError.callCount, 1, 'curlError() should have been called');
+        assert.equal(featureSpy.requeue.callCount, 0, 'requeue() should NOT have been called');
+    });
+
     test('handles per-feature timeouts', function () {
         stub(mockExecutor, 'start', function () {
             mockExecutor.callbacks.finishedTask.call(task, 'behat   awesome.feature', {killed: true}, '');
