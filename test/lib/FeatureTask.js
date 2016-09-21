@@ -74,6 +74,14 @@ suite('Feature Test', function () {
         assert.isFalse(task.running);
     });
 
+    test('#curlError()', function () {
+        assert.equal(task.results.length, 1);
+        task.curlError();
+        assert.equal(task.results.length, 0);
+        assert.equal(task.curlErrors, 1);
+        assert.isFalse(task.running);
+    });
+
     test('#forceKillTimeout()', function () {
         task.setCompletion = spy();
         task.forceKillTimeout();

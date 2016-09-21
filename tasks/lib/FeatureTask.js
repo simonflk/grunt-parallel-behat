@@ -20,6 +20,7 @@ function FeatureTask (filename) {
     this.ok = false;
     this.running = false;
     this.waitTimeouts = 0;
+    this.curlErrors = 0;
 }
 
 _.extend(FeatureTask.prototype, {
@@ -74,10 +75,30 @@ _.extend(FeatureTask.prototype, {
         }
     },
 
+    /**
+     * Returns true if all the results for this feature are either
+     * 'forceKillTimeout' or 'unknown'
+     *
+     * @return {Boolean}
+     */
+    hasProblems: function () {
+        var statuses = _.pluck(this.results, 'status'),
+            problems = _.intersection(['forceKillTimeout', 'unknown'], statuses),
+            featureIsBorked = statuses.length && statuses.length === problems.length;
+
+        return !this.running && featureIsBorked;
+    },
+
     seleniumTimeout: function () {
         this.running = false;
         this.results.pop();
         this.waitTimeouts++;
+    },
+
+    curlError: function () {
+        this.running = false;
+        this.results.pop();
+        this.curlErrors++;
     },
 
     forceKillTimeout: function () {

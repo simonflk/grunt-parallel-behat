@@ -1,12 +1,16 @@
 {
   "name": "grunt-parallel-behat",
   "description": "Run Behat Features in Parallel.",
-  "version": "0.3.9",
-  "homepage": "https://github.com/linusnorton/grunt-parallel-behat",
+  "version": "0.4.1",
+  "homepage": "https://github.com/bbc-fm-nk-core-eng/grunt-parallel-behat",
   "author": {
     "name": "Linus Norton",
-    "url": "http://github.com/linusnorton"
+    "url": "https://github.com/linusnorton"
   },
+  "contributors": [
+      "Simon Flack (https://github.com/simonflk)",
+      "Francesco Negri (https://github.com/dhinus)"
+  ],
   "repository": {
     "type": "git",
     "url": "git://github.com/linusnorton/grunt-parallel-behat"

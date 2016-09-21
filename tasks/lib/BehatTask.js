@@ -131,12 +131,16 @@ function BehatTask (options) {
                 // todo add config option
                 silentRequeue = true;
             }
-        }
-        else if (err.code === 1) {
+        } else if (err.code === 255) {
+            options.log('Curl Error 255: ' + task.descriptor + ' -  adding to the back of the queue.');
+            task.curlError();
+            if (task.curlErrors <= 5) {
+                silentRequeue = true;
+            }
+        } else if (err.code === 1) {
             options.log('Failed: ' + task.descriptor + ' - ' + output[output.length - 4] + ' in ' + output[output.length - 2]);
             task.failed(testResults);
-        }
-        else {
+        } else {
             options.log('Error: ' + task.descriptor + ' - ' + err + stdout);
             task.unknown();
         }
@@ -211,15 +215,18 @@ function BehatTask (options) {
                     tasks: taskArray,
                     total: taskArray.length,
                     ok: _.where(taskArray, { ok: true }).length,
-                    running: _.chain(taskArray).filter(function (t) {
+                    running: _.filter(taskArray, function (t) {
                         return t.getCurrentDuration() >= 30;
-                    }).size().value(),
-                    retries: _.chain(taskArray).pluck('retries').reduce(function (m,n) { return m + n; }, 0).value(),
-                    killed: _.chain(taskArray).filter(function (t) {
-                        var numForceKilled = _.where(t.results, {status: 'forceKillTimeout'}).length,
-                            featureWasOnlyKilled = t.results.length === numForceKilled;
-                        return !t.running && featureWasOnlyKilled;
-                    }).size().value()
+                    }).length,
+                    retries: _.chain(taskArray)
+                        .pluck('retries')
+                        .reduce(function (m,n) {
+                            return m + n;
+                        }, 0)
+                        .value(),
+                    killed: _.filter(taskArray, function (t) {
+                        return t.hasProblems();
+                    }).length
                 };
             try {
                 fs.writeFileSync(options.output, JSON.stringify(data));
